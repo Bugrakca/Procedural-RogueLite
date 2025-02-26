@@ -28,6 +28,9 @@ protected:
     UPROPERTY(EditDefaultsOnly)
     TArray<USceneComponent*> SpawnDirectionList;
 
+    UPROPERTY(EditDefaultsOnly)
+    TArray<UPrimitiveComponent*> OverlappedList;
+
     UPROPERTY(BlueprintReadOnly)
     TObjectPtr<ABDungeonRoom> LatestRoom;
 
@@ -37,6 +40,8 @@ protected:
     void SpawnStartRoom();
 
     void SpawnNextRoom();
+
+    void CheckOverlappedRooms();
 
     ABDungeonRoom* SpawnRoom(UClass* SpawnClass, const FTransform& Transform);
     

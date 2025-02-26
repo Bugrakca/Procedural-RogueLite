@@ -4,6 +4,7 @@
 #include "ProceduralRoguelike/Public/BDungeonGenerator.h"
 
 #include "BDungeonRoom.h"
+#include "Components/BoxComponent.h"
 
 
 // Sets default values
@@ -12,6 +13,7 @@ ABDungeonGenerator::ABDungeonGenerator()
     // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
     PrimaryActorTick.bCanEverTick = true;
     LatestRoom = nullptr;
+    RoomCount = 0;
 }
 
 // Called when the game starts or when spawned
@@ -62,15 +64,8 @@ void ABDungeonGenerator::SpawnNextRoom()
     FTransform SpawnTransform = FTransform(RandomDirection->GetComponentRotation(), SpawnLocation, FVector::OneVector);
 
     LatestRoom = SpawnRoom(BossRoomClass, SpawnTransform);
-
+    CheckOverlappedRooms();
     SpawnDirectionList.Remove(RandomDirection);
-    LatestRoom->ExitComponent->GetChildrenComponents(false, SpawnDirectionList);
-    RoomCount++;
-
-    if (RoomCount < 6)
-    {
-        SpawnNextRoom();
-    }
 }
 
 ABDungeonRoom* ABDungeonGenerator::SpawnRoom(UClass* SpawnClass, const FTransform& Transform)
@@ -81,4 +76,28 @@ ABDungeonRoom* ABDungeonGenerator::SpawnRoom(UClass* SpawnClass, const FTransfor
     ABDungeonRoom* SpawnRoom = GetWorld()->SpawnActor<ABDungeonRoom>(SpawnClass, Transform, Params);
 
     return SpawnRoom;
+}
+
+void ABDungeonGenerator::CheckOverlappedRooms()
+{
+    LatestRoom->BoxComponent->GetOverlappingComponents(OverlappedList);
+
+    if (!OverlappedList.IsEmpty())
+    {
+        OverlappedList.Empty();
+        LatestRoom->Destroy();
+        SpawnNextRoom();
+    }
+    else
+    {
+        OverlappedList.Empty();
+    }
+
+    LatestRoom->ExitComponent->GetChildrenComponents(false, SpawnDirectionList);
+    RoomCount++;
+
+    if (RoomCount < 6)
+    {
+        SpawnNextRoom();
+    }
 }
