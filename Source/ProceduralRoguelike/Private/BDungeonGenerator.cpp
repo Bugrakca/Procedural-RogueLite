@@ -47,25 +47,27 @@ void ABDungeonGenerator::SpawnNextRoom()
 {
     FVector SpawnLocation;
     const int32 Index = FMath::RandRange(0, SpawnDirectionList.Num() - 1);
-    USceneComponent* RandomDirection = SpawnDirectionList[Index];
+    USceneComponent* SelectedExit = SpawnDirectionList[Index];
 
-    FVector Direction = RandomDirection->GetForwardVector();
+    FVector ExitDirection = SelectedExit->GetForwardVector();
+    FRotator ExitRotation = SelectedExit->GetComponentRotation();
 
     if (LatestRoom != nullptr)
     {
         float DesiredDistance = 1500.0f;
-        SpawnLocation = LatestRoom->GetActorLocation() + (Direction * DesiredDistance);
+        SpawnLocation = LatestRoom->GetActorLocation() + (ExitDirection * DesiredDistance);
     }
     else
     {
         SpawnLocation = GetActorLocation();
     }
+    FRotator NewRoomRotation = ExitRotation.Add(0, 180.0f, 0);
 
-    FTransform SpawnTransform = FTransform(RandomDirection->GetComponentRotation(), SpawnLocation, FVector::OneVector);
+    FTransform SpawnTransform = FTransform(NewRoomRotation, SpawnLocation);
 
     LatestRoom = SpawnRoom(BossRoomClass, SpawnTransform);
     CheckOverlappedRooms();
-    SpawnDirectionList.Remove(RandomDirection);
+    SpawnDirectionList.Remove(SelectedExit);
 }
 
 ABDungeonRoom* ABDungeonGenerator::SpawnRoom(UClass* SpawnClass, const FTransform& Transform)
