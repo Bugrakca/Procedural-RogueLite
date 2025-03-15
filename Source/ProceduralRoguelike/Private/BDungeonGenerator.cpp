@@ -17,14 +17,11 @@ ABDungeonGenerator::ABDungeonGenerator()
 }
 
 // Called when the game starts or when spawned
-
 void ABDungeonGenerator::BeginPlay()
 {
     Super::BeginPlay();
 
     SpawnStartRoom();
-
-    SpawnNextRoom();
 }
 
 // Called every frame
@@ -36,52 +33,126 @@ void ABDungeonGenerator::Tick(float DeltaTime)
 
 void ABDungeonGenerator::SpawnStartRoom()
 {
-    ABDungeonRoom* SpawnedRoom = SpawnRoom(SpawnRoomClass, GetTransform());
-    LatestRoom = SpawnedRoom;
+    ABDungeonRoom* SpawnRoom = RoomSpawn(SpawnRoomClass, GetTransform());
+    SpawnRoom->ExitComponent->GetChildrenComponents(false, SpawnDirectionList);
 
-    SpawnedRoom->ExitComponent->GetChildrenComponents(false, SpawnDirectionList);
-    UE_LOG(LogTemp, Log, TEXT("%d"), SpawnDirectionList.Num())
+    for (auto Direction : SpawnDirectionList)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Direction: %s"), *Direction->GetName());
+    }
+
+    LatestRoom = SpawnRoom;
+
+    SpawnNextRoom();
 }
 
 void ABDungeonGenerator::SpawnNextRoom()
 {
-    FVector SpawnLocation;
-    const int32 Index = FMath::RandRange(0, SpawnDirectionList.Num() - 1);
-    USceneComponent* SelectedExit = SpawnDirectionList[Index];
+    if (RoomCount > 6)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Dungeon complete with %d rooms"), RoomCount);
+        return;
+    }
 
+    if (SpawnDirectionList.Num() == 0)
+    {
+        UE_LOG(LogTemp, Error, TEXT("No exits found for room %d"), RoomCount);
+        return;
+    }
+
+    USceneComponent* SelectedExit = SpawnDirectionList[FMath::RandRange(0, SpawnDirectionList.Num() - 1)];
+    UE_LOG(LogTemp, Error, TEXT("Selected Exit: %s"), *SelectedExit->GetName());
+
+    // Calculate new room position and rotation
     FVector ExitDirection = SelectedExit->GetForwardVector();
-    FRotator ExitRotation = SelectedExit->GetComponentRotation();
+    float RoomDistance = 1500.0f;
 
-    if (LatestRoom != nullptr)
-    {
-        float DesiredDistance = 1500.0f;
-        SpawnLocation = LatestRoom->GetActorLocation() + (ExitDirection * DesiredDistance);
-    }
-    else
-    {
-        SpawnLocation = GetActorLocation();
-    }
-    FRotator NewRoomRotation = ExitRotation.Add(0, 180.0f, 0);
+    //Room transform
+    FVector SpawnLocation = LatestRoom->GetActorLocation() + (ExitDirection * RoomDistance);
 
-    FTransform SpawnTransform = FTransform(NewRoomRotation, SpawnLocation);
+    FRotator Rotation = SelectedExit->GetComponentTransform().Rotator();
 
-    LatestRoom = SpawnRoom(BossRoomClass, SpawnTransform);
-    CheckOverlappedRooms();
+    FVector Scale = FVector(1, 1, 1);
+
+    FTransform SpawnTransform = FTransform(Rotation, SpawnLocation, Scale);
+
+    // Choose room type - Boss room for last room, regular rooms otherwise
+    // TSubclassOf<ABDungeonRoom> RoomClassToSpawn;
+    // if (RoomCount == 5) // Last room (0-indexed count)
+    // {
+    //     RoomClassToSpawn = BossRoomClass;
+    // }
+    // else
+    // {
+    //     RoomClassToSpawn = RegularRoomClass;
+    // }
     SpawnDirectionList.Remove(SelectedExit);
+
+    // Spawn the new room
+    ABDungeonRoom* NewRoom = RoomSpawn(RegularRoomClass, SpawnTransform);
+
+    // Track this as our latest room
+    ABDungeonRoom* PreviousRoom = LatestRoom;
+    LatestRoom = NewRoom;
+
+    //Get spawn directions
+    TArray<USceneComponent*> NewDirections;
+    LatestRoom->ExitComponent->GetChildrenComponents(false, NewDirections);
+
+    SpawnDirectionList.Append(NewDirections);
+    
+    for (auto Direction : SpawnDirectionList)
+    {
+        UE_LOG(LogTemp, Log, TEXT("Directions: %s"), *Direction->GetName());
+    }
+
+    // Check for overlaps with existing rooms
+    CheckOverlappedRooms();
+
+    // If the room was destroyed due to overlap, try again
+    if (!IsValid(LatestRoom))
+    {
+        // Restore previous room as latest and try again
+        LatestRoom = PreviousRoom;
+        SpawnNextRoom();
+        return;
+    }
+
+    RoomCount++;
+
+    UE_LOG(LogTemp, Warning, TEXT("Spawned room %d at %s"),
+           RoomCount, *LatestRoom->GetActorLocation().ToString());
+
+    // Continue to next room
+    SpawnNextRoom();
 }
 
-ABDungeonRoom* ABDungeonGenerator::SpawnRoom(UClass* SpawnClass, const FTransform& Transform)
+ABDungeonRoom* ABDungeonGenerator::RoomSpawn(UClass* SpawnClass, const FTransform& Transform)
 {
     FActorSpawnParameters Params;
     Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-    ABDungeonRoom* SpawnRoom = GetWorld()->SpawnActor<ABDungeonRoom>(SpawnClass, Transform, Params);
+    ABDungeonRoom* SpawnedRoom = GetWorld()->SpawnActor<ABDungeonRoom>(SpawnClass, Transform, Params);
 
-    return SpawnRoom;
+    return SpawnedRoom;
 }
 
 void ABDungeonGenerator::CheckOverlappedRooms()
 {
+    // if (!LatestRoom || !LatestRoom->BoxComponent)
+    // {
+    //     return;
+    // }
+    //
+    // OverlappedList.Empty();
+    // LatestRoom->BoxComponent->GetOverlappingComponents(OverlappedList);
+    //
+    // if (!OverlappedList.IsEmpty())
+    // {
+    //     UE_LOG(LogTemp, Warning, TEXT("Room overlapped, destroying and trying again"));
+    //     LatestRoom->Destroy();
+    //     LatestRoom = nullptr;
+    // }
     LatestRoom->BoxComponent->GetOverlappingComponents(OverlappedList);
 
     if (!OverlappedList.IsEmpty())
@@ -93,13 +164,5 @@ void ABDungeonGenerator::CheckOverlappedRooms()
     else
     {
         OverlappedList.Empty();
-    }
-
-    LatestRoom->ExitComponent->GetChildrenComponents(false, SpawnDirectionList);
-    RoomCount++;
-
-    if (RoomCount < 6)
-    {
-        SpawnNextRoom();
     }
 }

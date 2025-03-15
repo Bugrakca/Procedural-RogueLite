@@ -26,15 +26,18 @@ protected:
     TSubclassOf<ABDungeonRoom> BossRoomClass;
 
     UPROPERTY(EditDefaultsOnly)
-    TArray<USceneComponent*> SpawnDirectionList;
+    TSubclassOf<ABDungeonRoom> RegularRoomClass;
 
     UPROPERTY(EditDefaultsOnly)
+    TArray<USceneComponent*> SpawnDirectionList;
+
+    UPROPERTY(EditAnywhere)
     TArray<UPrimitiveComponent*> OverlappedList;
 
     UPROPERTY(BlueprintReadOnly)
     TObjectPtr<ABDungeonRoom> LatestRoom;
 
-    UPROPERTY(EditAnywhere)
+    UPROPERTY(EditDefaultsOnly)
     int32 RoomCount;
 
     void SpawnStartRoom();
@@ -43,8 +46,8 @@ protected:
 
     void CheckOverlappedRooms();
 
-    ABDungeonRoom* SpawnRoom(UClass* SpawnClass, const FTransform& Transform);
-    
+    ABDungeonRoom* RoomSpawn(UClass* SpawnClass, const FTransform& Transform);
+
     // Called when the game starts or when spawned
     virtual void BeginPlay() override;
 

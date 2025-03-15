@@ -15,5 +15,3 @@ ABDungeonRoom::ABDungeonRoom()
     ExitComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Exits"));
     ExitComponent->SetupAttachment(BoxComponent);
 }
-
-
