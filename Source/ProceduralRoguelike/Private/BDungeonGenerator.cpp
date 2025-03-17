@@ -95,6 +95,10 @@ void ABDungeonGenerator::SpawnNextRoom()
     ABDungeonRoom* PreviousRoom = LatestRoom;
     LatestRoom = NewRoom;
 
+    
+    // Check for overlaps with existing rooms
+    CheckOverlappedRooms();
+
     //Get spawn directions
     TArray<USceneComponent*> NewDirections;
     LatestRoom->ExitComponent->GetChildrenComponents(false, NewDirections);
@@ -106,9 +110,6 @@ void ABDungeonGenerator::SpawnNextRoom()
         UE_LOG(LogTemp, Log, TEXT("Directions: %s"), *Direction->GetName());
     }
 
-    // Check for overlaps with existing rooms
-    CheckOverlappedRooms();
-
     // If the room was destroyed due to overlap, try again
     if (!IsValid(LatestRoom))
     {
@@ -117,8 +118,6 @@ void ABDungeonGenerator::SpawnNextRoom()
         SpawnNextRoom();
         return;
     }
-
-    RoomCount++;
 
     UE_LOG(LogTemp, Warning, TEXT("Spawned room %d at %s"),
            RoomCount, *LatestRoom->GetActorLocation().ToString());
@@ -139,20 +138,6 @@ ABDungeonRoom* ABDungeonGenerator::RoomSpawn(UClass* SpawnClass, const FTransfor
 
 void ABDungeonGenerator::CheckOverlappedRooms()
 {
-    // if (!LatestRoom || !LatestRoom->BoxComponent)
-    // {
-    //     return;
-    // }
-    //
-    // OverlappedList.Empty();
-    // LatestRoom->BoxComponent->GetOverlappingComponents(OverlappedList);
-    //
-    // if (!OverlappedList.IsEmpty())
-    // {
-    //     UE_LOG(LogTemp, Warning, TEXT("Room overlapped, destroying and trying again"));
-    //     LatestRoom->Destroy();
-    //     LatestRoom = nullptr;
-    // }
     LatestRoom->BoxComponent->GetOverlappingComponents(OverlappedList);
 
     if (!OverlappedList.IsEmpty())
@@ -163,6 +148,7 @@ void ABDungeonGenerator::CheckOverlappedRooms()
     }
     else
     {
+        RoomCount++;
         OverlappedList.Empty();
     }
 }
