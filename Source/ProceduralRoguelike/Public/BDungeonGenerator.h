@@ -29,7 +29,16 @@ protected:
     TSubclassOf<ABDungeonRoom> RegularRoomClass;
 
     UPROPERTY(EditDefaultsOnly)
+    TSubclassOf<AActor> SpawnWallClass;
+
+    UPROPERTY(EditDefaultsOnly)
+    TSubclassOf<AActor> SpawnDoorClass;
+
+    UPROPERTY(EditDefaultsOnly)
     TArray<USceneComponent*> SpawnDirectionList;
+
+    UPROPERTY(EditDefaultsOnly)
+    TArray<USceneComponent*> DoorDirectionList;
 
     UPROPERTY(EditDefaultsOnly)
     TArray<TSubclassOf<ABDungeonRoom>> RoomList;
@@ -42,6 +51,9 @@ protected:
 
     UPROPERTY(EditDefaultsOnly)
     int32 RoomCount;
+
+    UPROPERTY(EditDefaultsOnly)
+    bool bIsDungeonComplete;
 
     void SpawnStartRoom();
 

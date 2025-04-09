@@ -52,6 +52,35 @@ void ABDungeonGenerator::SpawnNextRoom()
     if (RoomCount > 5)
     {
         UE_LOG(LogTemp, Warning, TEXT("Dungeon complete with %d rooms"), RoomCount);
+
+        //* Spawning wall at the openings of the rooms.
+        for (const USceneComponent* Direction : SpawnDirectionList)
+        {
+            UE_LOG(LogTemp, Log, TEXT("Directions: %s"), *Direction->GetName());
+            FVector SpawnLocation = Direction->GetComponentLocation();
+            
+            FRotator SpawnRotation = Direction->GetComponentRotation() + FRotator(0, 90, 0);
+            FActorSpawnParameters Params;
+            Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+            AActor* SpawnedWall = GetWorld()->SpawnActor<AActor>(SpawnWallClass, SpawnLocation, SpawnRotation, Params);
+        }
+
+        //* Spawning doors where the rooms are connected.
+        for (const USceneComponent* Direction : DoorDirectionList)
+        {
+            UE_LOG(LogTemp, Log, TEXT("Directions: %s"), *Direction->GetName());
+            FVector SpawnLocation = Direction->GetComponentLocation();
+            
+            FRotator SpawnRotation = Direction->GetComponentRotation() + FRotator(0, 90, 0);
+            FActorSpawnParameters Params;
+            Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+            AActor* SpawnedDoor = GetWorld()->SpawnActor<AActor>(SpawnDoorClass, SpawnLocation, SpawnRotation, Params);
+        }
+
+        bIsDungeonComplete = true;
+        
         return;
     }
 
@@ -82,7 +111,9 @@ void ABDungeonGenerator::SpawnNextRoom()
 
     ABDungeonRoom* NewRoom = RoomSpawn(RandomRoom, SpawnTransform);
 
-    //* Remove the selected exit from the list to avoid spawning a room at the same location.
+    //* Remove the selected exit from the list to avoid spawning room at the same location.
+    //* Add the selected exit to the DoorList so we can spawn the doors.
+    DoorDirectionList.Add(SelectedExit);
     SpawnDirectionList.Remove(SelectedExit);
 
     // Track this as our latest room
