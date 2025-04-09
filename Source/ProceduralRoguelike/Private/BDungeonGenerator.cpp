@@ -48,7 +48,8 @@ void ABDungeonGenerator::SpawnStartRoom()
 
 void ABDungeonGenerator::SpawnNextRoom()
 {
-    if (RoomCount > 6)
+    //* End the room spawn when total room count reaches 6
+    if (RoomCount > 5)
     {
         UE_LOG(LogTemp, Warning, TEXT("Dungeon complete with %d rooms"), RoomCount);
         return;
@@ -60,15 +61,15 @@ void ABDungeonGenerator::SpawnNextRoom()
         return;
     }
 
+    //* Select a random exit from the current room.
     USceneComponent* SelectedExit = SpawnDirectionList[FMath::RandRange(0, SpawnDirectionList.Num() - 1)];
     UE_LOG(LogTemp, Error, TEXT("Selected Exit: %s"), *SelectedExit->GetName());
 
-    // Calculate new room position and rotation
+    //* Calculate the new room's position and rotation
     FVector ExitDirection = SelectedExit->GetForwardVector();
-    float RoomDistance = 1500.0f;
+    float RoomDistance = 750.0f; //* Adding this because the room pivot is at the center.
 
-    //Room transform
-    FVector SpawnLocation = LatestRoom->GetActorLocation() + (ExitDirection * RoomDistance);
+    FVector SpawnLocation = SelectedExit->GetComponentLocation() + (ExitDirection * RoomDistance);
 
     FRotator Rotation = SelectedExit->GetComponentTransform().Rotator();
 
@@ -76,44 +77,35 @@ void ABDungeonGenerator::SpawnNextRoom()
 
     FTransform SpawnTransform = FTransform(Rotation, SpawnLocation, Scale);
 
-    // Choose room type - Boss room for last room, regular rooms otherwise
-    // TSubclassOf<ABDungeonRoom> RoomClassToSpawn;
-    // if (RoomCount == 5) // Last room (0-indexed count)
-    // {
-    //     RoomClassToSpawn = BossRoomClass;
-    // }
-    // else
-    // {
-    //     RoomClassToSpawn = RegularRoomClass;
-    // }
-    SpawnDirectionList.Remove(SelectedExit);
+    //* Get random room from the list of rooms
+    const TSubclassOf<ABDungeonRoom> RandomRoom = RoomList[FMath::RandRange(0, RoomList.Num() - 1)];
 
-    // Spawn the new room
-    ABDungeonRoom* NewRoom = RoomSpawn(RegularRoomClass, SpawnTransform);
+    ABDungeonRoom* NewRoom = RoomSpawn(RandomRoom, SpawnTransform);
+
+    //* Remove the selected exit from the list to avoid spawning a room at the same location.
+    SpawnDirectionList.Remove(SelectedExit);
 
     // Track this as our latest room
     ABDungeonRoom* PreviousRoom = LatestRoom;
     LatestRoom = NewRoom;
 
-    
-    // Check for overlaps with existing rooms
     CheckOverlappedRooms();
 
-    //Get spawn directions
+    //Get latest spawned room directions
     TArray<USceneComponent*> NewDirections;
     LatestRoom->ExitComponent->GetChildrenComponents(false, NewDirections);
 
     SpawnDirectionList.Append(NewDirections);
-    
-    for (auto Direction : SpawnDirectionList)
-    {
-        UE_LOG(LogTemp, Log, TEXT("Directions: %s"), *Direction->GetName());
-    }
+
+    //* Direction Debug
+    // for (auto Direction : SpawnDirectionList)
+    // {
+    //     UE_LOG(LogTemp, Log, TEXT("Directions: %s"), *Direction->GetName());
+    // }
 
     // If the room was destroyed due to overlap, try again
     if (!IsValid(LatestRoom))
     {
-        // Restore previous room as latest and try again
         LatestRoom = PreviousRoom;
         SpawnNextRoom();
         return;

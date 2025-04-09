@@ -31,6 +31,9 @@ protected:
     UPROPERTY(EditDefaultsOnly)
     TArray<USceneComponent*> SpawnDirectionList;
 
+    UPROPERTY(EditDefaultsOnly)
+    TArray<TSubclassOf<ABDungeonRoom>> RoomList;
+
     UPROPERTY(EditAnywhere)
     TArray<UPrimitiveComponent*> OverlappedList;
 
