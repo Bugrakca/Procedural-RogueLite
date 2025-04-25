@@ -12,41 +12,21 @@
 // Sets default values for this component's properties
 UBInteractionComponent::UBInteractionComponent()
 {
-    // Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-    // off to improve performance if you don't need them.
-    PrimaryComponentTick.bCanEverTick = true;
-
-    // ...
+    
 }
 
-
-// Called when the game starts
-
-void UBInteractionComponent::BeginPlay()
-{
-    Super::BeginPlay();
-
-    // ...
-}
-
-
-// Called every frame
-
-void UBInteractionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-    // ...
-}
 
 void UBInteractionComponent::PrimaryInteract()
 {
     const UCameraComponent* CameraComp = nullptr;
-    
+
     FCollisionObjectQueryParams Params;
     Params.AddObjectTypesToQuery(ECC_WorldDynamic);
 
     AActor* MyOwner = GetOwner();
+
+    FCollisionQueryParams QueryParams;
+    QueryParams.AddIgnoredActor(MyOwner);
 
     if (ABCharacter* MyCharacter = Cast<ABCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0)))
     {
@@ -55,15 +35,15 @@ void UBInteractionComponent::PrimaryInteract()
 
     FCollisionShape Shape;
     Shape.SetSphere(20.0f);
-    
+
     FVector CameraLocation = CameraComp->GetComponentLocation();
     FRotator CameraRotation = CameraComp->GetComponentRotation();
-    
+
     FVector End = CameraLocation + (CameraRotation.Vector() * 500.0f);
 
     TArray<FHitResult> Hits;
 
-    bool bBlockingHit = GetWorld()->SweepMultiByObjectType(Hits, CameraLocation, End, FQuat::Identity, Params, Shape);
+    bool bBlockingHit = GetWorld()->SweepMultiByObjectType(Hits, CameraLocation, End, FQuat::Identity, Params, Shape, QueryParams);
 
     FColor LineColor = bBlockingHit ? FColor::Green : FColor::Red;
 
