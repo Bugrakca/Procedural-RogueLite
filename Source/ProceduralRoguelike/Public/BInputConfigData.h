@@ -21,4 +21,7 @@ public:
 
     UPROPERTY(EditDefaultsOnly, Category = "Enhanced Input")
     TObjectPtr<UInputAction> IAction_Look;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Enhanced Input")
+    TObjectPtr<UInputAction> IAction_Interact;
 };

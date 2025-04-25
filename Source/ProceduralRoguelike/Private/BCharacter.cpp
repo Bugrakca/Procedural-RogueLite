@@ -4,6 +4,7 @@
 #include "BCharacter.h"
 
 #include "BInputConfigData.h"
+#include "BInteractionComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Camera/CameraComponent.h"
@@ -23,6 +24,8 @@ ABCharacter::ABCharacter()
 
     CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
     CameraComp->SetupAttachment(SpringArmComp);
+
+    InteractionComp = CreateDefaultSubobject<UBInteractionComponent>(TEXT("InteractionComp"));
 
     GetCharacterMovement()->bOrientRotationToMovement = true;
 
@@ -60,6 +63,12 @@ void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
     EnhancedInputComp->BindAction(InputConfigData->IAction_Move, ETriggerEvent::Triggered, this, &ABCharacter::Move);
     EnhancedInputComp->BindAction(InputConfigData->IAction_Look, ETriggerEvent::Triggered, this, &ABCharacter::Look);
+    EnhancedInputComp->BindAction(InputConfigData->IAction_Interact, ETriggerEvent::Completed, this, &ABCharacter::PrimaryInteract);
+}
+
+UCameraComponent* ABCharacter::GetCameraComponent()
+{
+    return CameraComp;
 }
 
 void ABCharacter::Move(const FInputActionValue& Value)
@@ -86,4 +95,9 @@ void ABCharacter::Look(const FInputActionValue& Value)
 
     AddControllerYawInput(RotationValue.X);
     AddControllerPitchInput(RotationValue.Y);
+}
+
+void ABCharacter::PrimaryInteract()
+{
+    InteractionComp->PrimaryInteract();
 }

@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "BCharacter.generated.h"
 
+class UBInteractionComponent;
 class UInputMappingContext;
 class UBInputConfigData;
 class UCameraComponent;
@@ -34,6 +35,9 @@ protected:
     UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
     TObjectPtr<UInputMappingContext> PlayerMappingContext;
 
+    UPROPERTY(VisibleAnywhere, Category = "Components")
+    TObjectPtr<UBInteractionComponent> InteractionComp;
+
 protected:
     // Called when the game starts or when spawned
     virtual void BeginPlay() override;
@@ -42,10 +46,14 @@ protected:
 
     void Look(const FInputActionValue& Value);
 
+    void PrimaryInteract();
+
 public:
     // Called every frame
     virtual void Tick(float DeltaTime) override;
 
     // Called to bind functionality to input
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+    UCameraComponent* GetCameraComponent();
 };
