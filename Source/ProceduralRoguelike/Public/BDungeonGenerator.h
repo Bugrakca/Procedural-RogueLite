@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "BDungeonGenerator.generated.h"
 
+class UBRandomSeedComponent;
 class ABDungeonRoom;
 class UArrowComponent;
 
@@ -19,6 +20,9 @@ public:
     ABDungeonGenerator();
 
 protected:
+    UPROPERTY(VisibleAnywhere, Category = "Components")
+    TObjectPtr<UBRandomSeedComponent> RandomSeedComp;
+    
     UPROPERTY(EditDefaultsOnly)
     TSubclassOf<ABDungeonRoom> SpawnRoomClass;
 
@@ -49,8 +53,11 @@ protected:
     UPROPERTY(BlueprintReadOnly)
     TObjectPtr<ABDungeonRoom> LatestRoom;
 
-    UPROPERTY(EditDefaultsOnly)
+    UPROPERTY(VisibleAnywhere)
     int32 RoomCount;
+
+    UPROPERTY(EditAnywhere)
+    int32 MaxRoomNumber;
 
     UPROPERTY(EditDefaultsOnly)
     bool bIsDungeonComplete;
@@ -59,14 +66,12 @@ protected:
 
     void SpawnNextRoom();
 
+    void FinalizeDungeon();
+
     void CheckOverlappedRooms();
 
     ABDungeonRoom* RoomSpawn(UClass* SpawnClass, const FTransform& Transform);
 
     // Called when the game starts or when spawned
     virtual void BeginPlay() override;
-
-public:
-    // Called every frame
-    virtual void Tick(float DeltaTime) override;
 };
