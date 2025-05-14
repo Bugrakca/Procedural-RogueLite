@@ -1,1 +1,1 @@
-Rogulike game with Procedural Dungeon generation. (WIP)
+Rogulite game with Procedural Dungeon generation. (WIP)
