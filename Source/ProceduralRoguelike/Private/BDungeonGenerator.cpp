@@ -30,19 +30,16 @@ void ABDungeonGenerator::SpawnStartRoom()
     ABDungeonRoom* SpawnRoom = RoomSpawn(SpawnRoomClass, GetTransform());
     SpawnRoom->ExitComponent->GetChildrenComponents(false, SpawnDirectionList);
 
-    for (auto Direction : SpawnDirectionList)
+    //* Make an interface element for this - bool, if it is true make the seed editable.
+    // RandomSeedComp->InitStream("RoomSelection", 123456, true); //! Refactor: If user enters an input about seed number allow that, if not use random seed.
+    RandomSeedComp->InitStream("WorldGen");
+
+    //? Get random seed if bUseUserSeed is false. Print this on the screen.
+    if(RandomSeedComp->HasStream("WorldGen"))
     {
-        UE_LOG(LogTemp, Error, TEXT("SpawnRoom Directions: %s"), *Direction->GetName());
+        int64 Seed = RandomSeedComp->GetStreamSeed("WorldGen");
+        UE_LOG(LogTemp, Log, TEXT("Stored Seed: %lld"), Seed);
     }
-
-    RandomSeedComp->InitStream("RoomSelection", 123456, true); //! Refactor: If user enters an input about seed number allow that, if not use random seed.
-
-    //? For Debug usage
-    // if(RandomSeedComp->HasStream("WorldGen"))
-    // {
-    //     int64 Seed = RandomSeedComp->GetStreamSeed("WorldGen");
-    // }
-    // RandomSeedComp->InitStream("Test2Random");
 
     LatestRoom = SpawnRoom;
 
@@ -57,13 +54,11 @@ void ABDungeonGenerator::SpawnNextRoom()
         return;
     }
 
-    while (RoomCount <= MaxRoomNumber && SpawnDirectionList.Num() > 0)
+    while (RoomCount < MaxRoomNumber && SpawnDirectionList.Num() > 0)
     {
         //* Select a random exit from the current room.
-        USceneComponent* SelectedExit = SpawnDirectionList[RandomSeedComp->GetRandomIntInRange("RoomSelection", 0, SpawnDirectionList.Num() - 1)];
+        USceneComponent* SelectedExit = SpawnDirectionList[RandomSeedComp->GetRandomIntInRange("WorldGen", 0, SpawnDirectionList.Num())];
         UE_LOG(LogTemp, Error, TEXT("Selected Exit: %s"), *SelectedExit->GetName());
-
-        SpawnDirectionList.Remove(SelectedExit); //Remove the selected exit from the list.
 
         //* Calculate the new room's position and rotation
         FVector ExitDirection = SelectedExit->GetForwardVector();
@@ -75,11 +70,11 @@ void ABDungeonGenerator::SpawnNextRoom()
         FTransform SpawnTransform = FTransform(Rotation, SpawnLocation, Scale);
 
         //* Get random room from the list of rooms
-        // const TSubclassOf<ABDungeonRoom> RandomRoom = RoomList[FMath::RandRange(0, RoomList.Num() - 1)];
-        const TSubclassOf<ABDungeonRoom> RandomRoom = RoomList[RandomSeedComp->GetRandomIntInRange("RoomSelection", 0, RoomList.Num() - 1)];
+        const TSubclassOf<ABDungeonRoom> RandomRoom = RoomList[RandomSeedComp->GetRandomIntInRange("WorldGen", 0, RoomList.Num())];
+        UE_LOG(LogTemp, Error, TEXT("Selected Room: %s"), *RandomRoom->GetName());
         ABDungeonRoom* NewRoom = RoomSpawn(RandomRoom, SpawnTransform);
 
-        // Track this as our latest room
+        //* Track this as our latest room
         ABDungeonRoom* PreviousRoom = LatestRoom;
         LatestRoom = NewRoom;
 
@@ -88,16 +83,15 @@ void ABDungeonGenerator::SpawnNextRoom()
         if (!IsValid(LatestRoom))
         {
             LatestRoom = PreviousRoom;
-
             continue;
         }
 
+        SpawnDirectionList.Remove(SelectedExit); //Remove the selected exit from the list.
         DoorDirectionList.Add(SelectedExit);
 
-        UE_LOG(LogTemp, Warning, TEXT("Spawned room %d at %s"),
-               RoomCount, *LatestRoom->GetActorLocation().ToString());
+        // UE_LOG(LogTemp, Warning, TEXT("Spawned room %d at %s"), RoomCount, *LatestRoom->GetActorLocation().ToString());
 
-        //Get latest spawned room directions
+        //* Get latest spawned room directions
         TArray<USceneComponent*> NewDirections;
         LatestRoom->ExitComponent->GetChildrenComponents(false, NewDirections);
         SpawnDirectionList.Append(NewDirections);
@@ -155,10 +149,9 @@ void ABDungeonGenerator::FinalizeDungeon()
 
         AActor* SpawnedWall = GetWorld()->SpawnActor<AActor>(SpawnWallClass, SpawnLocation, SpawnRotation, Params);
 
-        UE_LOG(LogTemp, Log, TEXT("Wall spawned at exit: %s"), *RemainingExit->GetName());
+        // UE_LOG(LogTemp, Log, TEXT("Wall spawned at exit: %s"), *RemainingExit->GetName());
     }
 
-    UE_LOG(LogTemp, Log, TEXT("Door List Size: %d"), DoorDirectionList.Num());
 
     //* Spawn doors at connections between rooms
     for (USceneComponent* Door : DoorDirectionList)
@@ -171,6 +164,6 @@ void ABDungeonGenerator::FinalizeDungeon()
 
         AActor* SpawnedDoor = GetWorld()->SpawnActor<AActor>(SpawnDoorClass, SpawnLocation, SpawnRotation, Params);
         
-        UE_LOG(LogTemp, Log, TEXT("Door spawned at location: %s"), *SpawnLocation.ToString());
+        // UE_LOG(LogTemp, Log, TEXT("Door spawned at location: %s"), *SpawnLocation.ToString());
     }
 }
