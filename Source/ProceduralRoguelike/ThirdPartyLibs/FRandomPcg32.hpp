@@ -35,12 +35,12 @@ public:
     {
         State = 0;
         Increment = (InStream << 1u) | 1u;
-        
+
         // Warm-up
         RandUInt32();
-        
+
         State += InSeed;
-        
+
         // Finalize initialization
         RandUInt32();
     }
@@ -60,7 +60,6 @@ public:
 
         // Apply rotation
         return (XorShifted >> Rotation) | (XorShifted << RotationAmount);
-
     }
 
     /** Get a random unsigned integer in range [0, InMax) */
@@ -76,7 +75,7 @@ public:
         {
             return Min;
         }
-        
+
         return Min + RandRange(Max - Min);
     }
 

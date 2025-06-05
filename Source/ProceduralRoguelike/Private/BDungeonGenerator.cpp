@@ -37,7 +37,7 @@ void ABDungeonGenerator::SpawnStartRoom()
     //? Get random seed if bUseUserSeed is false. Print this on the screen.
     if(RandomSeedComp->HasStream("WorldGen"))
     {
-        int64 Seed = RandomSeedComp->GetStreamSeed("WorldGen");
+        const int64 Seed = RandomSeedComp->GetStreamSeed("WorldGen");
         UE_LOG(LogTemp, Log, TEXT("Stored Seed: %lld"), Seed);
     }
 
@@ -86,7 +86,8 @@ void ABDungeonGenerator::SpawnNextRoom()
             continue;
         }
 
-        SpawnDirectionList.Remove(SelectedExit); //Remove the selected exit from the list.
+        //* Remove the selected exit from the list.
+        SpawnDirectionList.Remove(SelectedExit); 
         DoorDirectionList.Add(SelectedExit);
 
         // UE_LOG(LogTemp, Warning, TEXT("Spawned room %d at %s"), RoomCount, *LatestRoom->GetActorLocation().ToString());
