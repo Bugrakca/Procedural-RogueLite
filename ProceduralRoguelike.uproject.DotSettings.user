@@ -9,4 +9,7 @@
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=9303C5C9_002D86C7_002D3F2F_002D199B_002DA87C045B4561_002Fd_003Aboost_002D1_005F82_005F0_002Fd_003Ainclude_002Fd_003Aboost_002Fd_003Arange_002Ff_003Aconcepts_002Ehpp/@EntryIndexedValue">ForceIncluded</s:String>
 	<s:String x:Key="/Default/CodeInspection/ExcludedFiles/FilesAndFoldersToSkip2/=9303C5C9_002D86C7_002D3F2F_002D199B_002DA87C045B4561_002Fd_003Aboost_002D1_005F82_005F0_002Fd_003Ainclude_002Fd_003Aboost_002Fd_003Atest_002Fd_003Adata_002Fd_003Amonomorphic_002Fd_003Agenerators_002Ff_003Arandom_002Ehpp/@EntryIndexedValue">ForceIncluded</s:String>
 	<s:String x:Key="/Default/CodeStyle/CodeFormatting/CppFormatting/INDENT_STYLE/@EntryValue">Space</s:String>
+	<s:String x:Key="/Default/Environment/Hierarchy/Build/BuildTool/CustomBuildToolPath/@EntryValue">C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe</s:String>
+	<s:Int64 x:Key="/Default/Environment/Hierarchy/Build/BuildTool/MsbuildVersion/@EntryValue">1114112</s:Int64>
+	
 	<s:Boolean x:Key="/Default/Environment/SettingsMigration/IsMigratorApplied/=JetBrains_002EReSharper_002EFeature_002EServices_002ECpp_002ECodeStyle_002ESettingsUpgrade_002EFunctionReturnStyleSettingsUpgrader/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>
