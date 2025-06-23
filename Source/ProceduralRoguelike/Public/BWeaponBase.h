@@ -6,6 +6,10 @@
 #include "GameFramework/Actor.h"
 #include "BWeaponBase.generated.h"
 
+class UCurveFloat;
+class UTimelineComponent;
+class UAudioComponent;
+class UCameraShakeBase;
 class UNiagaraSystem;
 class UBoxComponent;
 
@@ -20,6 +24,9 @@ public:
 
 protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+    TObjectPtr<USceneComponent> SceneRootComp;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     TObjectPtr<UStaticMeshComponent> StaticMeshComp;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
@@ -27,6 +34,9 @@ protected:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     TObjectPtr<UAudioComponent> AudioComp;
+
+    UPROPERTY(BlueprintReadOnly)
+    bool bDamageApplied = false;
 
     UPROPERTY(EditDefaultsOnly, Category = "Effects")
     TObjectPtr<UNiagaraSystem> ImpactVfx;
@@ -42,17 +52,20 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, Category = "Effects|Shake")
     float ImpactShakeOuterRadius;
-    
 
-    UFUNCTION()
-    virtual void OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-    void DamageVfx();
+    UPROPERTY(EditDefaultsOnly, Category = "Damage")
+    float DamageAmount;
 
 public:
     virtual void BeginPlay() override;
 
-    UFUNCTION(BlueprintCallable, Category = "Weapon")
-    UBoxComponent* GetBoxComponent() const;
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+    void WeaponAttackStart();
+    
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+    void WeaponAttackEnd();
+
+protected:
+    UFUNCTION()
+    virtual void OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 };
