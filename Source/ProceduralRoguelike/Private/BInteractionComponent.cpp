@@ -6,6 +6,7 @@
 #include "BCharacter.h"
 #include "BGameplayInterface.h"
 #include "Camera/CameraComponent.h"
+#include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -14,7 +15,6 @@ UBInteractionComponent::UBInteractionComponent()
 {
     
 }
-
 
 void UBInteractionComponent::PrimaryInteract()
 {
