@@ -7,6 +7,9 @@
 #include "GameFramework/Character.h"
 #include "BCharacter.generated.h"
 
+class ABWeaponBase;
+class UBAttributeComponent;
+class UBoxComponent;
 class UBInteractionComponent;
 class UInputMappingContext;
 class UBInputConfigData;
@@ -29,24 +32,35 @@ protected:
     UPROPERTY(VisibleAnywhere, Category = "Components")
     TObjectPtr<UCameraComponent> CameraComp;
 
+    UPROPERTY(VisibleAnywhere, Category = "Components")
+    TObjectPtr<UBInteractionComponent> InteractionComp;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+    TObjectPtr<UBAttributeComponent> AttributesComp;
+
     UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
     TObjectPtr<UBInputConfigData> InputConfigData;
 
     UPROPERTY(EditDefaultsOnly, Category = "EnhancedInput")
     TObjectPtr<UInputMappingContext> PlayerMappingContext;
 
-    UPROPERTY(VisibleAnywhere, Category = "Components")
-    TObjectPtr<UBInteractionComponent> InteractionComp;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+    TObjectPtr<ABWeaponBase> CurrentWeapon;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+    TSubclassOf<ABWeaponBase> WeaponClass;
 
 protected:
     // Called when the game starts or when spawned
     virtual void BeginPlay() override;
-
+    
     void Move(const FInputActionValue& Value);
 
     void Look(const FInputActionValue& Value);
 
     void PrimaryInteract();
+
+    void AttachWeapon();
 
 public:
     // Called every frame
@@ -55,5 +69,9 @@ public:
     // Called to bind functionality to input
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+    UFUNCTION(BlueprintCallable)
     UCameraComponent* GetCameraComponent();
+
+    UFUNCTION(BlueprintCallable)
+    ABWeaponBase* GetCurrentWeapon();
 };

@@ -3,11 +3,15 @@
 
 #include "BCharacter.h"
 
+#include "BAttributeComponent.h"
 #include "BInputConfigData.h"
 #include "BInteractionComponent.h"
+#include "BWeaponBase.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Camera/CameraComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Engine/LocalPlayer.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
@@ -27,6 +31,8 @@ ABCharacter::ABCharacter()
 
     InteractionComp = CreateDefaultSubobject<UBInteractionComponent>(TEXT("InteractionComp"));
 
+    AttributesComp = CreateDefaultSubobject<UBAttributeComponent>(TEXT("AttributesComp"));
+
     GetCharacterMovement()->bOrientRotationToMovement = true;
 
     bUseControllerRotationYaw = false;
@@ -36,6 +42,7 @@ ABCharacter::ABCharacter()
 void ABCharacter::BeginPlay()
 {
     Super::BeginPlay();
+    AttachWeapon();
 }
 
 // Called every frame
@@ -64,11 +71,6 @@ void ABCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
     EnhancedInputComp->BindAction(InputConfigData->IAction_Move, ETriggerEvent::Triggered, this, &ABCharacter::Move);
     EnhancedInputComp->BindAction(InputConfigData->IAction_Look, ETriggerEvent::Triggered, this, &ABCharacter::Look);
     EnhancedInputComp->BindAction(InputConfigData->IAction_Interact, ETriggerEvent::Completed, this, &ABCharacter::PrimaryInteract);
-}
-
-UCameraComponent* ABCharacter::GetCameraComponent()
-{
-    return CameraComp;
 }
 
 void ABCharacter::Move(const FInputActionValue& Value)
@@ -100,4 +102,30 @@ void ABCharacter::Look(const FInputActionValue& Value)
 void ABCharacter::PrimaryInteract()
 {
     InteractionComp->PrimaryInteract();
+}
+
+void ABCharacter::AttachWeapon()
+{
+     FTransform WeaponTransform = GetMesh()->GetSocketTransform("WeaponSocket");
+     FTransform SpawnTM = WeaponTransform;
+
+     FActorSpawnParameters SpawnParams;
+     SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+    FAttachmentTransformRules AttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
+
+    ABWeaponBase* SpawnedWeapon = GetWorld()->SpawnActor<ABWeaponBase>(WeaponClass, SpawnTM, SpawnParams);
+    SpawnedWeapon->AttachToComponent(GetMesh(), AttachmentTransformRules, "WeaponSocket");
+    
+    CurrentWeapon = SpawnedWeapon;
+}
+
+UCameraComponent* ABCharacter::GetCameraComponent()
+{
+    return CameraComp;
+}
+
+ABWeaponBase* ABCharacter::GetCurrentWeapon()
+{
+    return CurrentWeapon;
 }
