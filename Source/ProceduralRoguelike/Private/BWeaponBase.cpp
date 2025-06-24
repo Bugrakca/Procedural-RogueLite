@@ -8,7 +8,6 @@
 #include "Components/AudioComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Components/TimelineComponent.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 
