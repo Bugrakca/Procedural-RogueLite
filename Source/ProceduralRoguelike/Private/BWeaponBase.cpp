@@ -4,6 +4,7 @@
 #include "BWeaponBase.h"
 
 #include "BAttributeComponent.h"
+#include "KismetTraceUtils.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Components/AudioComponent.h"
 #include "Components/BoxComponent.h"
@@ -45,7 +46,8 @@ void ABWeaponBase::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AAct
             FVector End = OtherActor->GetActorLocation();
             
             FHitResult Hit;
-            GetWorld()->LineTraceSingleByChannel(Hit, GetActorLocation(), End, ECC_WorldDynamic);
+            bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, GetActorLocation(), End, ECC_WorldDynamic);
+            DrawDebugBoxTraceSingle(GetWorld(), GetActorLocation(), End, FVector(5.f, 5.f, 5.f), FRotator::ZeroRotator,EDrawDebugTrace::ForDuration, true, Hit, FColor::Red, FColor::Green, 5.f);
 
             AttributeComp->ApplyHealthChange(-DamageAmount);
 
