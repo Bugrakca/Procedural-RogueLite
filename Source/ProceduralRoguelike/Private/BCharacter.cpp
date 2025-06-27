@@ -106,7 +106,7 @@ void ABCharacter::PrimaryInteract()
 
 void ABCharacter::AttachWeapon()
 {
-     FTransform WeaponTransform = GetMesh()->GetSocketTransform("WeaponSocket");
+     FTransform WeaponTransform = GetMesh()->GetSocketTransform("WeaponSocketR");
      FTransform SpawnTM = WeaponTransform;
 
      FActorSpawnParameters SpawnParams;
@@ -115,7 +115,7 @@ void ABCharacter::AttachWeapon()
     FAttachmentTransformRules AttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
 
     ABWeaponBase* SpawnedWeapon = GetWorld()->SpawnActor<ABWeaponBase>(WeaponClass, SpawnTM, SpawnParams);
-    SpawnedWeapon->AttachToComponent(GetMesh(), AttachmentTransformRules, "WeaponSocket");
+    SpawnedWeapon->AttachToComponent(GetMesh(), AttachmentTransformRules, "WeaponSocketR");
     
     CurrentWeapon = SpawnedWeapon;
 }
