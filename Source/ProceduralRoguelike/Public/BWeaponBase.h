@@ -38,6 +38,9 @@ protected:
     UPROPERTY(BlueprintReadOnly)
     bool bDamageApplied = false;
 
+    UPROPERTY(BlueprintReadWrite)
+    bool bWeaponTrace;
+
     UPROPERTY(EditDefaultsOnly, Category = "Effects")
     TObjectPtr<UNiagaraSystem> ImpactVfx;
 
@@ -56,16 +59,26 @@ protected:
     UPROPERTY(EditDefaultsOnly, Category = "Damage")
     float DamageAmount;
 
-public:
-    virtual void BeginPlay() override;
+    UPROPERTY(BlueprintReadOnly)
+    FVector PreviousTopTrace;
 
+    UPROPERTY(BlueprintReadOnly)
+    FVector PreviousBottomTrace;
+
+public:
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
     void WeaponAttackStart();
     
     UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
     void WeaponAttackEnd();
 
+    UFUNCTION(BlueprintCallable)
+    UStaticMeshComponent* GetStaticMesh();
+
 protected:
-    UFUNCTION()
-    virtual void OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+    UFUNCTION(BlueprintCallable)
+    void PerformWeaponTrace();
+
+    UFUNCTION(BlueprintCallable)
+    void ToggleWeaponTrace(bool bWeaponTraceOn);
 };
