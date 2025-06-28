@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Windows/WindowsPlatformTime.h"
 
 /**
  * PCG32 Random Number Generator
