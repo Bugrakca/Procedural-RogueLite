@@ -1,6 +1,7 @@
 # Visual Studio user specific files
 .vs/
 .vsconfig
+UpgradeLog.htm
 
 # Rider
 .idea/
