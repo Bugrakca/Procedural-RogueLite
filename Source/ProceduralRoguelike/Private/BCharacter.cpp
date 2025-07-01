@@ -127,5 +127,8 @@ UCameraComponent* ABCharacter::GetCameraComponent()
 
 ABWeaponBase* ABCharacter::GetCurrentWeapon()
 {
-    return CurrentWeapon;
+    if (CurrentWeapon)
+        return CurrentWeapon;
+
+    return nullptr;
 }

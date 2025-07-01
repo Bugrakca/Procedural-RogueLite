@@ -7,6 +7,7 @@
 #include "BCharacter.h"
 #include "KismetTraceUtils.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Camera/CameraShakeBase.h"
 #include "Components/AudioComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -37,84 +38,52 @@ UStaticMeshComponent* ABWeaponBase::GetStaticMesh()
     return StaticMeshComp;
 }
 
-void ABWeaponBase::PerformWeaponTrace()
+void ABWeaponBase::ResetHitActors()
 {
-    if (bDamageApplied)
-    {
-        return;
-    }
-
-    if (bWeaponTrace)
-    {
-        UStaticMeshComponent* WeaponMesh = StaticMeshComp;
-        if (IsValid(WeaponMesh))
-        {
-            FVector CurrentTopTrace = WeaponMesh->GetSocketLocation("TopTrace");
-            FVector CurrentBottomTrace = WeaponMesh->GetSocketLocation("BottomTrace");
-
-            float Distance = FVector::Dist(CurrentTopTrace, CurrentBottomTrace);
-
-            FRotator SocketRotation = FRotationMatrix::MakeFromX(CurrentBottomTrace - CurrentTopTrace).Rotator();
-
-            FVector HalfSize = FVector(Distance / 2.0f, 10.0f, 10.0f);
-
-            FCollisionShape CollisionShape = FCollisionShape::MakeBox(HalfSize);
-
-            FCollisionQueryParams QueryParams;
-            QueryParams.AddIgnoredActor(GetOwner());
-
-            FHitResult Hit;
-            bool bHit = GetWorld()->SweepSingleByChannel(Hit, PreviousTopTrace, CurrentTopTrace, SocketRotation.Quaternion(), ECC_Visibility, CollisionShape, QueryParams);
-            DrawDebugBoxTraceSingle(GetWorld(), PreviousTopTrace, CurrentTopTrace, HalfSize, SocketRotation, EDrawDebugTrace::ForDuration, bHit, Hit, FLinearColor::Red, FLinearColor::Green, 1.0f);
-
-            PreviousTopTrace = CurrentTopTrace;
-            PreviousBottomTrace = CurrentBottomTrace;
-
-            if (bHit)
-            {
-                if (Hit.GetActor())
-                {
-                    UBAttributeComponent* AttributeComponent = Hit.GetActor()->GetComponentByClass<UBAttributeComponent>();
-                    if (IsValid(AttributeComponent))
-                    {
-                        AttributeComponent->ApplyHealthChange(-DamageAmount);
-
-                        UGameplayStatics::PlaySoundAtLocation(GetWorld(), ImpactSound, Hit.ImpactPoint);
-
-                        UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ImpactVfx, Hit.Location, Hit.ImpactNormal.Rotation(), FVector(1), true, true);
-
-                        UGameplayStatics::PlayWorldCameraShake(GetWorld(), ImpactShake, GetActorLocation(), ImpactShakeInnerRadius, ImpactShakeOuterRadius);
-
-                        bDamageApplied = true;
-                    }
-                }
-            }
-        }
-    }
+    HitActors.Empty();
+    UE_LOG(LogTemp, Log, TEXT("Reset hit actors for weapon: %s"), *GetName());
 }
 
-void ABWeaponBase::ToggleWeaponTrace(bool bWeaponTraceOn)
+bool ABWeaponBase::TryApplyDamage(const FHitResult& Hit)
 {
-    bWeaponTrace = bWeaponTraceOn;
+    if (!Hit.GetActor())
+        return false;
 
-    if (bWeaponTrace)
+    AActor* HitActor = Hit.GetActor();
+
+    if (HitActors.Contains(HitActor))
     {
-        UStaticMeshComponent* WeaponMesh = StaticMeshComp;
-        if (IsValid(WeaponMesh))
-        {
-            PreviousTopTrace = WeaponMesh->GetSocketLocation("TopTrace");
-            PreviousBottomTrace = WeaponMesh->GetSocketLocation("BottomTrace");
-        }
+        UE_LOG(LogTemp, Log, TEXT("Actor %s already hit, skipping"), *HitActor->GetName());
+        return false;
     }
+
+    UBAttributeComponent* AttributeComponent = HitActor->GetComponentByClass<UBAttributeComponent>();
+    if (!IsValid(AttributeComponent))
+    {
+        return false;
+    }
+
+    HitActors.Add(HitActor);
+    AttributeComponent->ApplyHealthChange(-DamageAmount);
+    PlayImpactEffects(Hit);
+
+    return true;
 }
 
-void ABWeaponBase::WeaponAttackStart_Implementation()
+void ABWeaponBase::PlayImpactEffects(const FHitResult& Hit)
 {
-    BoxComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-}
+    if (ImpactSound)
+    {
+        UGameplayStatics::PlaySoundAtLocation(GetWorld(), ImpactSound, Hit.ImpactPoint);
+    }
 
-void ABWeaponBase::WeaponAttackEnd_Implementation()
-{
-    bDamageApplied = false;
-    BoxComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    if (ImpactVfx)
+    {
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ImpactVfx, Hit.Location, Hit.ImpactNormal.Rotation(), FVector(1), true, true);
+    }
+
+    if (ImpactShake)
+    {
+        UGameplayStatics::PlayWorldCameraShake(GetWorld(), ImpactShake, GetActorLocation(), ImpactShakeInnerRadius, ImpactShakeOuterRadius);
+    }
 }

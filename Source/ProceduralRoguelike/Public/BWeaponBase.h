@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/HitResult.h"
 #include "GameFramework/Actor.h"
 #include "BWeaponBase.generated.h"
 
@@ -25,7 +26,7 @@ public:
 protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     TObjectPtr<USceneComponent> SceneRootComp;
-    
+
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     TObjectPtr<UStaticMeshComponent> StaticMeshComp;
 
@@ -34,12 +35,6 @@ protected:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     TObjectPtr<UAudioComponent> AudioComp;
-
-    UPROPERTY(BlueprintReadOnly)
-    bool bDamageApplied = false;
-
-    UPROPERTY(BlueprintReadWrite)
-    bool bWeaponTrace;
 
     UPROPERTY(EditDefaultsOnly, Category = "Effects")
     TObjectPtr<UNiagaraSystem> ImpactVfx;
@@ -60,25 +55,22 @@ protected:
     float DamageAmount;
 
     UPROPERTY(BlueprintReadOnly)
-    FVector PreviousTopTrace;
-
-    UPROPERTY(BlueprintReadOnly)
-    FVector PreviousBottomTrace;
+    TSet<AActor*> HitActors;
 
 public:
-    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-    void WeaponAttackStart();
-    
-    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-    void WeaponAttackEnd();
-
     UFUNCTION(BlueprintCallable)
     UStaticMeshComponent* GetStaticMesh();
 
-protected:
-    UFUNCTION(BlueprintCallable)
-    void PerformWeaponTrace();
+public:
+    UFUNCTION(BlueprintCallable, Category = "Combat")
+    void ResetHitActors();
 
-    UFUNCTION(BlueprintCallable)
-    void ToggleWeaponTrace(bool bWeaponTraceOn);
+    UFUNCTION(BlueprintCallable, Category = "Combat")
+    bool TryApplyDamage(const FHitResult& Hit);
+
+    UFUNCTION(BlueprintCallable, Category = "Combat")
+    void PlayImpactEffects(const FHitResult& Hit);
+
+    UFUNCTION(BlueprintPure, Category = "Combat")
+    float GetDamageAmount() const { return DamageAmount; }
 };
