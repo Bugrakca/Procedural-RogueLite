@@ -45,7 +45,7 @@ This is a personal game development prototype built in **Unreal Engine 5** using
 ## 🎥 Demo
 
 > _Watch a short gameplay showcase video here:_  
-> [📺 Watch on YouTube](#) *(link your video here)*
+> [📺 Watch on YouTube](https://youtu.be/VS5eUoX8fuQ)
 
 ---
 
