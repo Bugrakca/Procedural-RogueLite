@@ -10,6 +10,19 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/EngineTypes.h"
 
+#if !UE_BUILD_SHIPPING
+namespace DevelopmentOnly
+{
+    static bool GDrawDebugMelee = false;
+    static FAutoConsoleVariableRef CVarDrawDebug_MeleeNotifies(
+        TEXT("game.drawdebugmelee"),
+        GDrawDebugMelee,
+        TEXT("Enable debug rendering on the melee system.\n"),
+        ECVF_Cheat
+        );
+}
+#endif
+
 UAnimNotifyState_Melee::UAnimNotifyState_Melee()
 {
     TraceChannel = ECC_Pawn;
@@ -48,7 +61,7 @@ void UAnimNotifyState_Melee::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimS
 {
     if (!CurrentWeapon)
         return;
-
+    
     UStaticMeshComponent* WeaponMesh = CurrentWeapon->GetStaticMesh();
     if (!IsValid(WeaponMesh))
         return;
@@ -56,27 +69,39 @@ void UAnimNotifyState_Melee::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimS
     FVector CurrentTopTrace = WeaponMesh->GetSocketLocation("TopTrace");
     FVector CurrentBottomTrace = WeaponMesh->GetSocketLocation("BottomTrace");
     
-    float Distance = FVector::Dist(CurrentTopTrace, CurrentBottomTrace);
-    FRotator SocketRotation = FRotationMatrix::MakeFromX(CurrentBottomTrace - CurrentTopTrace).Rotator();
-    FVector HalfSize = FVector(Distance / 2.0f, 10.0f, 10.0f);
-
+    // Calculate center point between sockets
+    FVector CurrentCenter = (CurrentTopTrace + CurrentBottomTrace) / 2.0f;
+    FVector PreviousCenter = (PreviousTopTrace + PreviousBottomTrace) / 2.0f;
+    
+    float WeaponLength = FVector::Dist(CurrentTopTrace, CurrentBottomTrace);
+    
+    FVector HalfSize = FVector(WeaponLength / 2.0f, 10.0f, 10.0f);
+    
+    FVector WeaponDirection = (CurrentTopTrace - CurrentBottomTrace).GetSafeNormal();
+    FRotator WeaponRotation = FRotationMatrix::MakeFromX(WeaponDirection).Rotator();
+    
     FCollisionShape CollisionShape = FCollisionShape::MakeBox(HalfSize);
     
     FCollisionQueryParams QueryParams;
     QueryParams.AddIgnoredActor(MeshComp->GetOwner());
-    
     QueryParams.bTraceComplex = false;
-
-    FHitResult Hit;
-    bool bHit = MeshComp->GetWorld()->SweepSingleByChannel(Hit, PreviousTopTrace, CurrentTopTrace, SocketRotation.Quaternion(), TraceChannel, CollisionShape, QueryParams);
-
-    DrawDebugBoxTraceSingle(MeshComp->GetWorld(), PreviousTopTrace, CurrentTopTrace, HalfSize, SocketRotation, EDrawDebugTrace::ForDuration, bHit, Hit, FLinearColor::Red, FLinearColor::Green, 1.0f);
     
+    TArray<FHitResult> Hits;
+    bool bHit = MeshComp->GetWorld()->SweepMultiByChannel(Hits, PreviousCenter, CurrentCenter, WeaponRotation.Quaternion(), TraceChannel, CollisionShape, QueryParams);
+#if !UE_BUILD_SHIPPING
+    if (DevelopmentOnly::GDrawDebugMelee)
+    {
+        DrawDebugBoxTraceMulti(MeshComp->GetWorld(), PreviousCenter, CurrentCenter, HalfSize, WeaponRotation, EDrawDebugTrace::ForDuration, bHit, Hits, FLinearColor::Red, FLinearColor::Green, 1.0f);
+    }
+#endif
     PreviousTopTrace = CurrentTopTrace;
     PreviousBottomTrace = CurrentBottomTrace;
-    
-    if (bHit)
+
+    for (const FHitResult& Hit : Hits)
     {
-        CurrentWeapon->TryApplyDamage(Hit);
+        if (bHit)
+        {
+            CurrentWeapon->TryApplyDamage(Hit);
+        }
     }
 }
