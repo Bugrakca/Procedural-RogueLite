@@ -79,7 +79,7 @@ void ABWeaponBase::PlayImpactEffects(const FHitResult& Hit)
 
     if (ImpactVfx)
     {
-        UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ImpactVfx, Hit.Location, Hit.ImpactNormal.Rotation(), FVector(1), true, true);
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ImpactVfx, Hit.ImpactPoint, Hit.ImpactNormal.Rotation(), FVector(1), true, true);
     }
 
     if (ImpactShake)
