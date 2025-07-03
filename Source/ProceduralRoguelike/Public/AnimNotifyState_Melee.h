@@ -8,6 +8,22 @@
 
 class ABWeaponBase;
 enum ECollisionChannel : int;
+
+USTRUCT()
+struct FMeleeTraceData
+{
+    GENERATED_BODY()
+
+    UPROPERTY()
+    ABWeaponBase* CurrentWeapon = nullptr;
+    
+    UPROPERTY()
+    AActor* WeaponOwner = nullptr;
+    
+    FVector PreviousTopTrace = FVector::ZeroVector;
+    FVector PreviousBottomTrace = FVector::ZeroVector;
+};
+
 /**
  * 
  */
@@ -15,6 +31,10 @@ UCLASS()
 class PROCEDURALROGUELIKE_API UAnimNotifyState_Melee : public UAnimNotifyState
 {
     GENERATED_BODY()
+
+private:
+    UPROPERTY()
+    TMap<AActor*, FMeleeTraceData> CharacterData;
 
 protected:
     UPROPERTY(EditAnywhere)
@@ -28,6 +48,9 @@ protected:
 
     UPROPERTY()
     TObjectPtr<ABWeaponBase> CurrentWeapon;
+
+    UPROPERTY()
+    AActor* WeaponOwner;
 
     FVector PreviousTopTrace;
     
