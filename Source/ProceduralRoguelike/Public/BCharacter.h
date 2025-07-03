@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "InputActionValue.h"
+#include "UCombatInterface.h"
 #include "GameFramework/Character.h"
 #include "BCharacter.generated.h"
 
@@ -17,7 +18,7 @@ class UCameraComponent;
 class USpringArmComponent;
 
 UCLASS()
-class PROCEDURALROGUELIKE_API ABCharacter : public ACharacter
+class PROCEDURALROGUELIKE_API ABCharacter : public ACharacter, public IUCombatInterface
 {
     GENERATED_BODY()
 
@@ -72,6 +73,5 @@ public:
     UFUNCTION(BlueprintCallable)
     UCameraComponent* GetCameraComponent();
 
-    UFUNCTION(BlueprintCallable)
-    ABWeaponBase* GetCurrentWeapon();
+    virtual ABWeaponBase* GetCurrentWeapon_Implementation() const override;
 };

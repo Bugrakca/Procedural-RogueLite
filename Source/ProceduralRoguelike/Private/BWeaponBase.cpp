@@ -5,7 +5,6 @@
 
 #include "BAttributeComponent.h"
 #include "BCharacter.h"
-#include "KismetTraceUtils.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Camera/CameraShakeBase.h"
 #include "Components/AudioComponent.h"

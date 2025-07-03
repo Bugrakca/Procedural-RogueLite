@@ -114,10 +114,17 @@ void ABCharacter::AttachWeapon()
 
     FAttachmentTransformRules AttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, true);
 
-    ABWeaponBase* SpawnedWeapon = GetWorld()->SpawnActor<ABWeaponBase>(WeaponClass, SpawnTM, SpawnParams);
-    SpawnedWeapon->AttachToComponent(GetMesh(), AttachmentTransformRules, "WeaponSocketR");
-    
-    CurrentWeapon = SpawnedWeapon;
+     if (!CurrentWeapon && WeaponClass)
+     {
+         CurrentWeapon = GetWorld()->SpawnActor<ABWeaponBase>(WeaponClass, SpawnTM, SpawnParams);
+
+         if (CurrentWeapon)
+         {
+             CurrentWeapon->SetOwner(this);
+
+             CurrentWeapon->AttachToComponent(GetMesh(), AttachmentTransformRules, "WeaponSocketR");
+         }
+     }
 }
 
 UCameraComponent* ABCharacter::GetCameraComponent()
@@ -125,7 +132,7 @@ UCameraComponent* ABCharacter::GetCameraComponent()
     return CameraComp;
 }
 
-ABWeaponBase* ABCharacter::GetCurrentWeapon()
+ABWeaponBase* ABCharacter::GetCurrentWeapon_Implementation() const
 {
     if (CurrentWeapon)
         return CurrentWeapon;
